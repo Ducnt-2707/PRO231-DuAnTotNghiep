@@ -19,22 +19,22 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # 🩵 Bước 1: Restore NuGet packages (cả kiểu mới & kiểu cũ)
+    # 🩵 Restore NuGet packages (mới + cũ)
     - name: Restore NuGet packages (dotnet)
       run: dotnet restore PRO231-DuAnTotNghiep.sln
 
     - name: Restore NuGet packages (legacy)
       run: nuget restore PRO231-DuAnTotNghiep.sln
 
-    # 🧱 Bước 2: Build solution
-    - name: Build solution
-      run: dotnet build PRO231-DuAnTotNghiep.sln --configuration Release --no-restore
+    # 🧱 Build (bắt buộc x86)
+    - name: Build solution (force x86)
+      run: msbuild PRO231-DuAnTotNghiep.sln /p:Configuration=Release /p:Platform="x86"
 
-    # 🧪 Bước 3: Chạy unit test (NUnit)
+    # 🧪 Test (nếu test project là .NET Core)
     - name: Run unit tests
       run: dotnet test DuAnTotNghiep.Test/DuAnTotNghiep.Test.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
 
-    # 📦 Bước 4: Upload kết quả test
+    # 📦 Upload test result
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
