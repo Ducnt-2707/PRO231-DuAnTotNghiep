@@ -19,25 +19,25 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # 🩵 Restore NuGet packages (mới + cũ)
+    # Restore các package (mới + cũ)
     - name: Restore NuGet packages (dotnet)
       run: dotnet restore PRO231-DuAnTotNghiep.sln
 
     - name: Restore NuGet packages (legacy)
       run: nuget restore PRO231-DuAnTotNghiep.sln
 
-    # 🧱 Build (tự động tìm MSBuild & ép build x86)
-    - name: Build solution (x86)
+    # Build solution bằng MSBuild (Any CPU)
+    - name: Build solution (Any CPU)
       shell: pwsh
       run: |
         $msbuild = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
-        & "$msbuild" PRO231-DuAnTotNghiep.sln /p:Configuration=Release /p:Platform="x86"
+        & "$msbuild" PRO231-DuAnTotNghiep.sln /p:Configuration=Release /p:Platform="Any CPU"
 
-    # 🧪 Run tests (.NET Core/NUnit)
+    # Run unit tests
     - name: Run unit tests
       run: dotnet test DuAnTotNghiep.Test/DuAnTotNghiep.Test.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
 
-    # 📦 Upload test result
+    # Upload test results
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
