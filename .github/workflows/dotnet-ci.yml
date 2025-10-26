@@ -26,11 +26,14 @@ jobs:
     - name: Restore NuGet packages (legacy)
       run: nuget restore PRO231-DuAnTotNghiep.sln
 
-    # 🧱 Build (bắt buộc x86)
-    - name: Build solution (force x86)
-      run: msbuild PRO231-DuAnTotNghiep.sln /p:Configuration=Release /p:Platform="x86"
+    # 🧱 Build (tự động tìm MSBuild & ép build x86)
+    - name: Build solution (x86)
+      shell: pwsh
+      run: |
+        $msbuild = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+        & "$msbuild" PRO231-DuAnTotNghiep.sln /p:Configuration=Release /p:Platform="x86"
 
-    # 🧪 Test (nếu test project là .NET Core)
+    # 🧪 Run tests (.NET Core/NUnit)
     - name: Run unit tests
       run: dotnet test DuAnTotNghiep.Test/DuAnTotNghiep.Test.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
 
