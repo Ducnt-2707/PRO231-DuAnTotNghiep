@@ -7,52 +7,36 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-framework:
+  build-and-test:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout source code
+      uses: actions/checkout@v4
 
-      - name: Setup .NET SDK 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
+    - name: Setup .NET SDK 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-      # 🔹 Restore toàn bộ solution
-      - name: Restore NuGet packages
-        run: dotnet restore PRO231-DuAnTotNghiep.sln
+    # 🩵 Bước 1: Restore NuGet packages (cả kiểu mới & kiểu cũ)
+    - name: Restore NuGet packages (dotnet)
+      run: dotnet restore PRO231-DuAnTotNghiep.sln
 
-      # 🔹 Build app chính
-      - name: Build main project
-        run: dotnet build PRO231-DuAnTotNghiep.sln --configuration Release
+    - name: Restore NuGet packages (legacy)
+      run: nuget restore PRO231-DuAnTotNghiep.sln
 
-  test-dotnet:
-    runs-on: windows-latest
-    needs: build-framework
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # 🧱 Bước 2: Build solution
+    - name: Build solution
+      run: dotnet build PRO231-DuAnTotNghiep.sln --configuration Release --no-restore
 
-      - name: Setup .NET SDK 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
+    # 🧪 Bước 3: Chạy unit test (NUnit)
+    - name: Run unit tests
+      run: dotnet test DuAnTotNghiep.Test/DuAnTotNghiep.Test.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
 
-      # ✅ Restore toàn bộ để có dependency giữa project chính & test
-      - name: Restore all NuGet packages
-        run: dotnet restore PRO231-DuAnTotNghiep.sln
-
-      # ✅ Build toàn solution (để .exe có sẵn)
-      - name: Build entire solution
-        run: dotnet build PRO231-DuAnTotNghiep.sln --configuration Release
-
-      # 🧪 Chạy test project
-      - name: Run unit tests
-        run: dotnet test DuAnTotNghiep.Test/DuAnTotNghiep.Test.csproj --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
-
-      # (Tùy chọn) Lưu kết quả test để xem trực tiếp trong GitHub
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: NUnit-test-results
-          path: '**/test_results.trx'
+    # 📦 Bước 4: Upload kết quả test
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: NUnit-test-results
+        path: '**/test_results.trx'
